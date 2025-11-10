@@ -1,6 +1,6 @@
-import { sql } from "@/lib/db"
+import { query, execute } from "@/lib/db"
 import { type NextRequest, NextResponse } from "next/server"
-import bcrypt from "bcrypt"
+import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 
 export async function POST(request: NextRequest) {
@@ -12,8 +12,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = await sql("SELECT id FROM users WHERE email = $1", [email])
-    if (existingUser && existingUser.length > 0) {
+    const existingUsers = await query("SELECT id FROM users WHERE email = ?", [email])
+    if (Array.isArray(existingUsers) && existingUsers.length > 0) {
       return NextResponse.json({ error: "User already exists" }, { status: 409 })
     }
 
@@ -21,31 +21,30 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10)
 
     // Create user
-    const result = await sql(
+    const result = await execute(
       `INSERT INTO users (email, password_hash, name, theme) 
-       VALUES ($1, $2, $3, $4) 
-       RETURNING id, email, name, theme, created_at`,
+       VALUES (?, ?, ?, ?)`,
       [email, hashedPassword, name, theme || "light"],
     )
 
-    if (!result || result.length === 0) {
+    const userId = (result as any).insertId
+
+    if (!userId) {
       throw new Error("Failed to create user")
     }
 
-    const user = result[0]
-
     // Initialize user progress
-    await sql(
+    await execute(
       `INSERT INTO user_progress (user_id, points, level, streak) 
-       VALUES ($1, 0, 1, 0)`,
-      [user.id],
+       VALUES (?, 0, 1, 0)`,
+      [userId],
     )
 
     // Initialize avatar settings
-    await sql(
+    await execute(
       `INSERT INTO avatar_settings (user_id, selected_face, selected_outfit, selected_shoes, selected_headdress, selected_background) 
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [user.id, "face-male-1", "outfit-casual", "shoes-sneakers", "headdress-none", "bg-simple"],
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [userId, "face-male-1", "outfit-casual", "shoes-sneakers", "headdress-none", "bg-simple"],
     )
 
     // Initialize default objectives
@@ -74,12 +73,16 @@ export async function POST(request: NextRequest) {
     ]
 
     for (const obj of objectivesData) {
-      await sql(
+      await execute(
         `INSERT INTO objectives (user_id, type, title, description, target, current, completed, points) 
-         VALUES ($1, $2, $3, $4, $5, 0, false, $6)`,
-        [user.id, obj.type, obj.title, obj.description, obj.target, obj.points],
+         VALUES (?, ?, ?, ?, ?, 0, false, ?)`,
+        [userId, obj.type, obj.title, obj.description, obj.target, obj.points],
       )
     }
+
+    // Get user data
+    const users = (await query("SELECT id, email, name, theme, created_at FROM users WHERE id = ?", [userId])) as any[]
+    const user = users[0]
 
     // Create JWT token
     const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET || "secret", {

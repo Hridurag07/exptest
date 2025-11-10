@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
-    "@neondatabase/serverless": "latest",
+    "@neondatabase/serverless": "1.0.2",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-aspect-ratio": "latest",
@@ -51,6 +51,7 @@
     "jose": "latest",
     "jsonwebtoken": "latest",
     "lucide-react": "^0.454.0",
+    "mysql2": "latest",
     "next": "14.2.16",
     "next-themes": "latest",
     "react": "^18",
