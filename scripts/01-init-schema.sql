@@ -177,12 +177,13 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 
 -- Create indexes for better query performance
-CREATE INDEX IF NOT EXISTS idx_expenses_user_id ON expenses(user_id);
-CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
-CREATE INDEX IF NOT EXISTS idx_budgets_user_id ON budgets(user_id);
-CREATE INDEX IF NOT EXISTS idx_income_user_id ON income(user_id);
-CREATE INDEX IF NOT EXISTS idx_objectives_user_id ON objectives(user_id);
-CREATE INDEX IF NOT EXISTS idx_badges_user_id ON badges(user_id);
-CREATE INDEX IF NOT EXISTS idx_rewards_user_id ON rewards(user_id);
-CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
-CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
+CREATE INDEX idx_expenses_user_id ON expenses(user_id);
+CREATE INDEX idx_expenses_date ON expenses(date);
+CREATE INDEX idx_budgets_user_id ON budgets(user_id);
+CREATE INDEX idx_income_user_id ON income(user_id);
+CREATE INDEX idx_objectives_user_id ON objectives(user_id);
+CREATE INDEX idx_badges_user_id ON badges(user_id);
+CREATE INDEX idx_rewards_user_id ON rewards(user_id);
+CREATE INDEX idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX idx_sessions_expires_at ON sessions(expires_at);
+
